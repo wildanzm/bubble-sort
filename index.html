@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Animasi Bubble Sort Buku</title>
+		<style>
+			body {
+				font-family: "Arial", sans-serif;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				margin-top: 20px;
+				background-color: #f4f4f4;
+				color: #333;
+				overflow-x: hidden;
+			}
+
+			h1 {
+				color: #2c3e50;
+			}
+
+			#book-container {
+				display: flex;
+				flex-wrap: nowrap;
+				overflow-x: hidden;
+				justify-content: flex-start; /* Align books to the start */
+				align-items: flex-end;
+				min-height: 250px;
+				margin-bottom: 20px;
+				padding: 10px;
+				border: 1px solid #ddd;
+				background-color: #fff;
+				border-radius: 8px;
+				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+				width: 90%;
+				max-width: 1000px;
+			}
+
+			.book {
+				flex-shrink: 1; /* Allow books to shrink to fit */
+				width: 45px; /* Ideal width */
+				min-width: 30px; /* Minimum width to prevent becoming too small */
+				height: 150px;
+				/* MODIFICATION: Single base color for all books */
+				background-color: #5dade2; /* Example: A nice blue */
+				border: 2px solid #3498db; /* Slightly darker border */
+				border-radius: 5px 2px 2px 5px; /* Book spine effect */
+				margin: 5px;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				align-items: center;
+				text-align: center;
+				color: white;
+				font-weight: bold;
+				font-size: 10px;
+				box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2);
+				transition: transform 0.5s ease-in-out, background-color 0.3s ease;
+				position: relative;
+				padding: 5px;
+				box-sizing: border-box;
+			}
+
+			.book-title {
+				/* Text on the spine (vertical) */
+				writing-mode: vertical-rl;
+				text-orientation: mixed;
+				font-size: 10px;
+				margin-bottom: 5px;
+				color: #ecf0f1;
+				max-height: 70%;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				line-height: 1;
+			}
+
+			.book-code {
+				/* Text at the bottom of the book face */
+				font-size: 9px;
+				background-color: rgba(0, 0, 0, 0.2);
+				padding: 2px 4px;
+				border-radius: 3px;
+				width: 100%;
+				box-sizing: border-box;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			/* No more .book:nth-child() for different base colors */
+
+			.book.comparing {
+				background-color: #f39c12; /* Orange when comparing */
+				border-color: #d35400;
+				transform: translateY(-15px);
+			}
+
+			.book.swapping {
+				background-color: #e74c3c; /* Red when swapping */
+				border-color: #c0392b;
+				transform: translateY(-25px) scale(1.05);
+			}
+
+			.book.sorted {
+				background-color: #2ecc71; /* Green when sorted */
+				border-color: #27ae60;
+				opacity: 0.9; /* Slightly less opaque to distinguish */
+			}
+
+			button {
+				padding: 10px 20px;
+				font-size: 16px;
+				color: white;
+				background-color: #3498db;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+				margin: 10px;
+				transition: background-color 0.3s ease;
+			}
+			button:hover {
+				background-color: #2980b9;
+			}
+			button:disabled {
+				background-color: #bdc3c7;
+				cursor: not-allowed;
+			}
+
+			#explanation {
+				margin-top: 20px;
+				padding: 15px;
+				background-color: #ecf0f1;
+				border-radius: 5px;
+				width: 80%;
+				max-width: 800px;
+				text-align: center;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+			}
+			#explanation p {
+				margin: 5px 0;
+				font-size: 14px;
+			}
+			.highlight {
+				font-weight: bold;
+				color: #c0392b;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>📚 Animasi Bubble Sort Buku Sorting</h1>
+		<div id="book-container"></div>
+		<div>
+			<button id="sort-button">Urutkan Buku!</button>
+			<button id="reset-button">Reset Buku</button>
+		</div>
+
+		<script>
+			const bookContainer = document.getElementById("book-container");
+			const sortButton = document.getElementById("sort-button");
+			const resetButton = document.getElementById("reset-button");
+			const numBooks = 20;
+			let books = []; // Array of book data objects
+			let bookElements = []; // Array of DOM elements representing books
+
+			function generateRandomBookCodes() {
+				// Renamed for clarity
+				let numbers = Array.from({ length: numBooks }, (_, i) => i + 1); // Numbers from 1 to numBooks
+				// Shuffle the numbers array
+				for (let i = numbers.length - 1; i > 0; i--) {
+					const j = Math.floor(Math.random() * (i + 1));
+					[numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+				}
+				return numbers; // Return the shuffled array of numbers (1 to 20)
+			}
+
+			function createBookElement(bookData) {
+				const bookDiv = document.createElement("div");
+				bookDiv.classList.add("book");
+				bookDiv.dataset.code = bookData.code; // Store full code for reference if needed
+				bookDiv.dataset.numericCode = bookData.numericCode; // Store numeric part for sorting
+
+				const titleDiv = document.createElement("div");
+				titleDiv.classList.add("book-title");
+				titleDiv.textContent = bookData.code; // Display full code on spine
+
+				const codeDiv = document.createElement("div");
+				codeDiv.classList.add("book-code");
+
+				bookDiv.appendChild(titleDiv);
+				bookDiv.appendChild(codeDiv);
+				return bookDiv;
+			}
+
+			function initializeBooks() {
+				books = [];
+				bookElements = [];
+				bookContainer.innerHTML = ""; // Clear previous books
+
+				const randomNumericCodes = generateRandomBookCodes();
+
+				for (let i = 0; i < numBooks; i++) {
+					const numericVal = randomNumericCodes[i]; // Get unique shuffled number
+					const bookData = {
+						id: i, // Original index, can be useful
+						code: `BS-${String(numericVal).padStart(4, "0")}`,
+						numericCode: numericVal,
+					};
+					books.push(bookData);
+					const bookElement = createBookElement(bookData);
+					bookElements.push(bookElement);
+					bookContainer.appendChild(bookElement);
+				}
+				sortButton.disabled = false;
+				resetButton.disabled = true; // Initially disabled until sort happens or if already sorted
+			}
+
+			async function swapAnimation(index1, index2) {
+				const elem1 = bookElements[index1];
+				const elem2 = bookElements[index2];
+
+				elem1.classList.add("swapping");
+				elem2.classList.add("swapping");
+
+				const rect1 = elem1.getBoundingClientRect();
+				const rect2 = elem2.getBoundingClientRect();
+
+				const translateX1 = rect2.left - rect1.left;
+				const translateX2 = rect1.left - rect2.left;
+
+				elem1.style.transform = `translateX(${translateX1}px) translateY(-25px) scale(1.05)`;
+				elem2.style.transform = `translateX(${translateX2}px) translateY(-25px) scale(1.05)`;
+
+				await new Promise((resolve) => setTimeout(resolve, 600)); // Animation duration
+
+				// Swap in the DOM
+				const parent = elem1.parentNode;
+				const nextSiblingOfElem1 = elem1.nextSibling; // Get the element after elem1
+
+				if (nextSiblingOfElem1 === elem2) {
+					// If elem2 is directly after elem1
+					parent.insertBefore(elem2, elem1);
+				} else {
+					// More general swap: insert elem2 before elem1's original next sibling (or append if elem1 was last)
+					// then insert elem1 before elem2 (which is now at elem1's old spot or earlier)
+					parent.insertBefore(elem2, nextSiblingOfElem1); // Place elem2 where elem1's next sibling was (or at end)
+					parent.insertBefore(elem1, elem2); // Place elem1 before elem2
+				}
+
+				elem1.style.transform = "translateY(0) scale(1)"; // Reset transform
+				elem2.style.transform = "translateY(0) scale(1)";
+				elem1.classList.remove("swapping");
+				elem2.classList.remove("swapping");
+
+				// Swap in helper arrays
+				[bookElements[index1], bookElements[index2]] = [bookElements[index2], bookElements[index1]];
+				[books[index1], books[index2]] = [books[index2], books[index1]];
+			}
+
+			async function bubbleSort() {
+				sortButton.disabled = true;
+				resetButton.disabled = true;
+				let n = books.length;
+				let swapped;
+
+				for (let i = 0; i < n - 1; i++) {
+					swapped = false;
+					for (let j = 0; j < n - i - 1; j++) {
+						bookElements[j].classList.add("comparing");
+						bookElements[j + 1].classList.add("comparing");
+
+						await new Promise((resolve) => setTimeout(resolve, 400)); // Pause for comparison visibility
+
+						// CORRECTED BUBBLE SORT LOGIC:
+						// Swap if the element on the left is greater than the element on the right
+						if (books[j].numericCode > books[j + 1].numericCode) {
+							await swapAnimation(j, j + 1);
+							swapped = true;
+						}
+
+						bookElements[j].classList.remove("comparing");
+						bookElements[j + 1].classList.remove("comparing");
+					}
+					// After each pass, the element at n - 1 - i is in its sorted position
+					bookElements[n - 1 - i].classList.add("sorted");
+
+					if (!swapped) {
+						// If no swaps occurred in this pass, the array is sorted
+						// Mark all remaining unsorted elements as sorted
+						for (let k = 0; k < n - 1 - i; k++) {
+							if (!bookElements[k].classList.contains("sorted")) {
+								bookElements[k].classList.add("sorted");
+							}
+						}
+						break;
+					}
+				}
+				// Ensure the very first element is marked sorted if loop completed/broke early
+				if (n > 0 && !bookElements[0].classList.contains("sorted")) {
+					bookElements[0].classList.add("sorted");
+				}
+
+				resetButton.disabled = false;
+			}
+
+			sortButton.addEventListener("click", bubbleSort);
+			resetButton.addEventListener("click", () => {
+				// Remove all status classes and reset transforms before re-initializing
+				bookElements.forEach((el) => {
+					el.classList.remove("sorted", "comparing", "swapping");
+					el.style.transform = "";
+				});
+				initializeBooks();
+			});
+
+			// Initial setup
+			initializeBooks();
+		</script>
+	</body>
+</html>
